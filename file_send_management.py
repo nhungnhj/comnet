@@ -11,7 +11,7 @@ code101 = "NG 101 No such file"     #ファイルが存在しない
 code102 = "NG 102 Invalid range"    #指定されたファイルの範囲が不適
 code301 = "NG 301 INvalid command"  #コマンドが間違っている
 
-only_server_port = 53922 # chuukei
+only_server_port = 50306 # chuukei
 server_port = 60623 # host contains files
 
 def rep(fserver_name, fname, key, got_data):
