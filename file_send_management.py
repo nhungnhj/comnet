@@ -117,7 +117,7 @@ def receive(client_connect):
 if __name__ == '__main__':
     server_socket = socket(AF_INET, SOCK_STREAM)  # TCPを使う待ち受け用のソケットを作る
     server_socket.bind(('', only_server_port))  # ポート番号をソケットに対応づける
-    server_socket.listen(5)  # クライアントからの接続を待つ
+    server_socket.listen(10)  # クライアントからの接続を待つ
     print('The chuukei server is ready to receive')
     while True:
         connection_socket, addr = server_socket.accept()
