@@ -16,7 +16,7 @@ only_server_port = 53922 # chuukei
 server_port = 60623 # host contains files
 
 def ping_comd(fileserver):
-    r=subprocess.run(["ping", "-c 10", fileserver], stdout=subprocess.PIPE)
+    r=subprocess.run(["ping", "-c 6", fileserver], stdout=subprocess.PIPE)
     std_out=r.stdout.decode()
     # print(std_out)
     std_out_lst = std_out.split()
@@ -35,26 +35,7 @@ def ping_comd(fileserver):
         loss = 100
         delay = 0
     return delay, loss
-"""
-def rep(fserver_name, fname, key, got_data):
-    #try: #rep
-    fserver_socket = socket(AF_INET, SOCK_STREAM)
-    fserver_socket.connect((fserver_name, server_port))
-    fil = open(fname, 'w')
-    fil.write(got_data.decode())
-    repkey_out = pbl2.repkey(key, fname)
-    rep = "REP" + " " + fname + " " + repkey_out + "\n"
-    fserver_socket.send(rep.encode())
-    recv_bytearray = bytearray()
-    while True:
-        recv_rep = fserver_socket.recv(1)[0]
-        recv_bytearray.append(recv_rep)
-        if recv_rep == 0x0a:
-            break
-    print('From Server: {0}'.format(recv_bytearray.decode()))
-    #except:
-    #    print("Unexpected Error")
-"""
+
 def interact_with_client(client_connect): 
     while True:
         receive(client_connect) #クライアントからの命令を実行
@@ -68,8 +49,8 @@ def receive(client_connect):
     print(arr)
 
     #com = arr[0]
-    fserver = arr[2]
-    fname = arr[3]
+    #fserver = arr[2]
+    #fname = arr[3]
     #key = arr[4]
     #move = arr[5]
 
@@ -86,75 +67,7 @@ def receive(client_connect):
                 break
             server_dat= server_dat + recv_data
         fserver_socket.close()
-    
-
-"""
-    if com == 'DL' and move == 'PARTIAL': #クライアントからDLを受け取ったら(PARTIAL)
-        fserver_name = fserver
-        fserver_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
-        fserver_socket.connect((fserver_name, server_port)) 
-
-        send_get_partial = "GET" + " " + fname + " " + key + " " + move + " " + arr[6] + " " + arr[7] + "\n"
-        #GET_ファイル名_key_PARTIAL_0_9\n
-        
-        fserver_socket.send(send_get_partial.encode()) #GET要求
-        print("GET要求送信")
-
-        start_time = time.time() #受信時間の計測開始
-        recv_bytearray = bytearray() #バイト列を格納する配列
-        recv_get = bytearray()
-        recv_data = bytearray()
-
-        while True:
-            recv_get = fserver_socket.recv(1)[0] #ファイルサーバから応答を受け取る
-            recv_bytearray.append(recv_get)
-            if recv_get == 0x0a:
-                break
-        recv_data = fserver_socket.recv(int(arr[7])) #指定したバイト数受け取る
-        
-        stop_time = time.time() #計測終了
-        fserver_socket.close() #ファイルサーバから切断
-        recv_time = stop_time - start_time #受け取るのにかかった時間を計算
-        send_relay = str(recv_time) + " " + "sec" + "\n"
-        client_connect.send(send_relay.encode()) #時間をクライアントに送信
-        print(recv_time)
-        print("計測時間送信完了")
-
-    elif com == 'DL' and move == 'ALL':  #クライアントからDLを受け取ったら(ALL)
-        fserver_name = fserver
-        fserver_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
-        fserver_socket.connect((fserver_name, server_port))
-
-        send_get_all = "GET" + " " + fname + " " + key + " " + move + "\n"
-        #GET_ファイル名_key_ALL\n
-
-        fserver_socket.send(send_get_all.encode())  #GET要求
-
-        recv_bytearray = bytearray() 
-        recv_get_all = bytearray()
-        recv_data = bytearray()
-        got_data = bytearray()
-        while True:
-            recv_get_all = fserver_socket.recv(1)[0] #ファイルサーバから応答を受け取る
-            recv_bytearray.append(recv_get_all)
-            if recv_get_all == 0x0a:
-                break
-        while True:
-            recv_data = fserver_socket.recv(1024)
-            got_data += recv_data
-            if len(recv_data) <= 0:
-                break
-        fserver_socket.close()
-        #rep(fserver_name, fname, key, got_data)
-        client_connect.send(got_data)
-        print("すべてのファイルを転送完了")
-
-    elif com == 'PING':
-        delay, loss=ping_comd(fserver_name)
-        print('packet loss:', loss, '%')
-    else:
-        print(code301) 
- """           
+             
 
 if __name__ == '__main__':
     server_socket = socket(AF_INET, SOCK_STREAM)  # TCPを使う待ち受け用のソケットを作る
