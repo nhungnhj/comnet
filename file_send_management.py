@@ -5,6 +5,7 @@ from socket import *
 import threading
 import pbl2
 import time
+import subprocess
 # key = pbl2.genkey(token)
 codeOK = "OK" 
 code101 = "NG 101 No such file"     #ファイルが存在しない
@@ -15,7 +16,7 @@ only_server_port = 53922 # chuukei
 server_port = 60623 # host contains files
 
 def ping_comd(fileserver):
-    r=subprocess.run(["ping", "-c 6", fileserver], stdout=subprocess.PIPE)
+    r=subprocess.run(["ping", "-c 10", fileserver], stdout=subprocess.PIPE)
     std_out=r.stdout.decode()
     # print(std_out)
     std_out_lst = std_out.split()
@@ -34,7 +35,7 @@ def ping_comd(fileserver):
         loss = 100
         delay = 0
     return delay, loss
-
+"""
 def rep(fserver_name, fname, key, got_data):
     #try: #rep
     fserver_socket = socket(AF_INET, SOCK_STREAM)
@@ -53,7 +54,7 @@ def rep(fserver_name, fname, key, got_data):
     print('From Server: {0}'.format(recv_bytearray.decode()))
     #except:
     #    print("Unexpected Error")
-
+"""
 def interact_with_client(client_connect): 
     while True:
         receive(client_connect) #クライアントからの命令を実行
@@ -62,17 +63,32 @@ def interact_with_client(client_connect):
 
 def receive(client_connect):
     sentence = client_connect.recv(1024).decode() #クライアントから命令を受け取る
-    print("DLコマンド受信")
+    #print("DLコマンド受信")
     arr = sentence.split()  #単語に分ける
     print(arr)
 
-    com = arr[0]
+    #com = arr[0]
     fserver = arr[2]
     fname = arr[3]
-    key = arr[4]
-    move = arr[5]
+    #key = arr[4]
+    #move = arr[5]
 
+    if arr[0]=='GET' or arr[0]=='REP':
+        fserver_name = fserver
+        fserver_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
+        fserver_socket.connect((fserver_name, server_port)) 
+        fserver_socket.send(sentence.encode()) #GET要求
+        print("GET要求送信")
+        server_dat=bytearray()
+        while True:
+            recv_data=fserver_socket.recv(1024)
+            if len(recv_data)<=0:
+                break
+            server_dat= server_dat + recv_data
+        fserver_socket.close()
+    
 
+"""
     if com == 'DL' and move == 'PARTIAL': #クライアントからDLを受け取ったら(PARTIAL)
         fserver_name = fserver
         fserver_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
@@ -138,12 +154,12 @@ def receive(client_connect):
         print('packet loss:', loss, '%')
     else:
         print(code301) 
-            
+ """           
 
 if __name__ == '__main__':
     server_socket = socket(AF_INET, SOCK_STREAM)  # TCPを使う待ち受け用のソケットを作る
     server_socket.bind(('', only_server_port))  # ポート番号をソケットに対応づける
-    server_socket.listen(5)  # クライアントからの接続を待つ
+    server_socket.listen(10)  # クライアントからの接続を待つ
     print('The chuukei server is ready to receive')
     while True:
         connection_socket, addr = server_socket.accept()
