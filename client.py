@@ -11,7 +11,7 @@ file_name = sys.argv[3]
 token = sys.argv[4]
 my_server_name = sys.argv[5]
 key = pbl2.genkey(token)
-only_server_port = 50306
+only_server_port = 53922
 
 def size():
     i = 0
@@ -105,8 +105,10 @@ if __name__ == '__main__':
     #if byte_size[2] > 10000:
     for i in range(1,8):
         relay_server_name = "pg" + str(i) #接続するサーバの選択
-        if relay_server_name == server_name or relay_server_name == my_server_name: 
-            i=i+1 # 中継サーバとファイルサーバが同じとき飛ばす
+        if relay_server_name == server_name: 
+            continue # 中継サーバとファイルサーバが同じとき飛ばす
+        if relay_server_name == my_server_name:
+            continue # 中継サーバとクライアントサーバが同じとき飛ばす
         client_socket = socket(AF_INET, SOCK_STREAM) #中継サーバに接続
         client_socket.connect((relay_server_name, only_server_port)) 
         relay_1 = "DL" + " " + relay_server_name + " " + server_name + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(9) + "\n"
@@ -145,6 +147,7 @@ if __name__ == '__main__':
         if len(got_relay_2) == int(SIZE):
             break
     rep(got_relay_2)
-    print("REP要求完了") 
+    print("REP要求完了")
+
 
     client_socket.close() 
