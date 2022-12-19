@@ -72,7 +72,12 @@ def receive(client_connect):
                 break
             server_dat= server_dat + recv_data
         fserver_socket.close()
-             
+
+    if arr[0]=='PING':
+        delay, loss= ping_comd(server_name)
+        print('遅延',delay, 'ms')
+        print('pk loss', loss, '%')
+        fserver_socket.send(str(loss).encode())             
 
 if __name__ == '__main__':
     server_socket = socket(AF_INET, SOCK_STREAM)  # TCPを使う待ち受け用のソケットを作る
