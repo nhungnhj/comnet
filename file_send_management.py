@@ -53,8 +53,12 @@ def receive(client_connect):
     #fname = arr[3]
     #key = arr[4]
     #move = arr[5]
+    if arr[0] in relay_server_name_list:
+        server_name= arr[0]
+    if arr[0] == 'PING':
+        delay, loss= ping_comd(fileserver)
 
-    if arr[0]=='GET' or arr[0]=='REP':
+    if arr[0]=='GET' or arr[0]=='REP' or :
         fserver_name = fserver
         fserver_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
         fserver_socket.connect((fserver_name, server_port)) 
