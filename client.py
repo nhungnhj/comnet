@@ -4,7 +4,6 @@ from socket import *
 import time
 import sys
 import pbl2
-import subprocess
 
 server_name = sys.argv[1]
 server_port = int(sys.argv[2])
@@ -13,6 +12,19 @@ token = sys.argv[4]
 my_server_name = sys.argv[5]
 key = pbl2.genkey(token)
 only_server_port = 53922
+
+def recv_ping(chuukei_name):
+    client_socket= socket(AF_INET, SOCK_STREAM)
+    client_socket.connect((chuukei_name, only_server_port))
+    pingcmd = "PING {0} {1}\n".format(chuukei_name, server_name)
+    print(pingcmd)
+    client_socket.send(pingcmd.encode())
+    rep_recv=client_socket.recv(1024)
+    rep_recv=rep_recv.decode()
+    loss = float(rep_recv)
+    print('packet loss:', rep_recv, '%')
+    client_socket.close()
+    return loss
 
 def size():
     i = 0
@@ -80,19 +92,6 @@ except:
 '''
 
 
-def recv_ping(chuukei_name):
-    client_socket= socket(AF_INET, SOCK_STREAM)
-    client_socket.connect((chuukei_name, only_server_port))
-    pingcmd = "PING {0} {1}\n".format(chuukei_name, server_name)
-    print(pingcmd)
-    client_socket.send(pingcmd.encode())
-    rep_recv=client_socket.recv(1024)
-    rep_recv=rep_recv.decode()
-    loss = float(rep_recv)
-    print('packet loss:', rep_recv, '%')
-    client_socket.close()
-    return loss
-
 def rep(got_data):
     try: #rep
         client_socket = socket(AF_INET, SOCK_STREAM)
@@ -125,7 +124,6 @@ if __name__ == '__main__':
             continue # 中継サーバとクライアントサーバが同じとき飛ばす
         client_socket = socket(AF_INET, SOCK_STREAM) #中継サーバに接続
         client_socket.connect((relay_server_name, only_server_port)) 
-       
         relay_1 = "DL" + " " + relay_server_name + " " + server_name + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(9) + "\n"
         #DL_中継サーバ名_ファイルサーバ名_ファイル名_key_partial_0_10\n
         client_socket.send(relay_1.encode()) #中継サーバに送信
@@ -142,11 +140,9 @@ if __name__ == '__main__':
         print('From Server: {} {}'.format(relay_server_name, got_relay_1.decode()))
         spl = got_relay_1.decode().split()
         relay_time = float(spl[0]) #受け取った時間を実数に変換
-        pk_loss=recv_ping(relay_server_name)
-        if pk_loss==0:
-            if relay_time < best_time: #より速い経路が見つかったら更新
-                best_time = relay_time 
-                best_server = i
+        if relay_time < best_time: #より速い経路が見つかったら更新
+            best_time = relay_time 
+            best_server = i
     print('From Server: {0}'.format(best_time))
     print('From Server: {0}'.format(best_server))
     best_server_name = "pg" + str(best_server)
@@ -165,5 +161,6 @@ if __name__ == '__main__':
             break
     rep(got_relay_2)
     print("REP要求完了")
+
 
     client_socket.close() 
