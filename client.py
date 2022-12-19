@@ -12,7 +12,7 @@ file_name = sys.argv[3]
 token = sys.argv[4]
 # my_server_name = sys.argv[5]
 key = pbl2.genkey(token)
-only_server_port = 50306
+only_server_port = 53922
 
 def recv_ping(chuukei_name):
     client_socket= socket(AF_INET, SOCK_STREAM)
