@@ -4,99 +4,102 @@ from socket import *
 import time
 import sys
 import pbl2
+import subprocess
 
 server_name = sys.argv[1]
 server_port = int(sys.argv[2])
 file_name = sys.argv[3]
 token = sys.argv[4]
-my_server_name = sys.argv[5]
+# my_server_name = sys.argv[5]
 key = pbl2.genkey(token)
-only_server_port = 53922
+only_server_port = 50306
+
+def get_all():
+    client_socket= socket(AF_INET,SOCK_STREAM)
+    client_socket.connect((server_name,server_port))
+    mess="GET {0} {1} ALL\n".format(filename, key)
+    client_socket.send(mess.encode())
+    recv_bytearray= bytearray()
+    while True:
+        d=client_socket.recv(1)[0]
+        recv_bytearray.append(d)
+        if d== 0x0a:
+            recv_str=recv_bytearray.decode()
+            break
+    rep_recv=recv_str.split()
+    with open(filename, 'wb') as f:
+        while True:
+            dat= client_socket.recv(1024)
+            if len(dat)<=0:
+                break
+            f.write(dat)
+    client_socket.close()
+#ok
+
+def get_partial(saisho,saigo):
+    client_socket= socket(AF_INET,SOCK_STREAM)
+    client_socket.connect((server_name,server_port))
+    mess="GET {0} {1} PARTIAL {2} {3}\n".format(filename, key, saisho,saigo)
+    client_socket.send(mess.encode())
+    recv_bytearray= bytearray()
+    while True:
+        d=client_socket.recv(1)[0]
+        recv_bytearray.append(d)
+        if d== 0x0a:
+            recv_str=recv_bytearray.decode()
+            break
+    rep_recv=recv_str.split()
+    with open(filename, 'wb') as f:
+        while True:
+            dat= client_socket.recv(1024)
+            if len(dat)<=0:
+                break
+            f.write(dat)
+    client_socket.close()
+#ok
+
+def rep():
+    repkey_out= pbl2.repkey(key, filename)
+    client_socket=socket(AF_INET, SOCK_STREAM)
+    client_socket.connect((server_name, server_port))
+    rep="REP {0}{1}\n".format(filename, repkey_out)
+    client_socket.send(rep.encode())
+    client_socket.send(target.encode())
+    rep_recv=client_socket.recv(1024)
+    rep_recv= rep_recv.decode()
+    client_socket.close()
+#ok
+
+
 
 def size():
-    i = 0
-    byte = 0
-    try: #try
-        client_socket = socket(AF_INET, SOCK_STREAM)
-        client_socket.connect((server_name, server_port))
-        size = "SIZE" + " " + file_name + "\n"
-        client_socket.send(size.encode())
-        recv_bytearray = bytearray()
-        while True:
-            recv_size = client_socket.recv(1)[0]
-            recv_bytearray.append(recv_size)
-            i += 1
-            if recv_size == 0x0a:
-                break
-        print('From Server: {0}'.format(recv_bytearray.decode()))
-        byte_size = recv_bytearray.decode().split()
-        return byte_size[2]
-    except: 
-        print("Unexpected Error")
-
-'''
-try: #get(ALL)
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect((server_name, server_port))
-    get = "GET" + " " + file_name + " " + key + " " + "ALL\n"
-    client_socket.send(get.encode())
+    size = "SIZE {}\n".format(file_name) 
+    client_socket.send(size.encode())
     recv_bytearray = bytearray()
-    got_data = bytearray()
-    while True:
-        recv_get = client_socket.recv(1)[0]
-        recv_bytearray.append(recv_get)
-        if recv_get == 0x0a:
-            break
-    while True:
-        recv_data = client_socket.recv(1024)
-        got_data += recv_data
-        if len(recv_data) <= 0:
-            break
-    print('From Server: {0}'.format(recv_bytearray.decode()))
-    #print('From Server: {0}'.format(got_data.decode()))
-except:
-    print("Unexpected Error")
-'''
-
-'''
-try: #get(partial)
-    client_socket = socket(AF_INET, SOCK_STREAM)
-    client_socket.connect((server_name, server_port))
-    partial_get = "GET" + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(9) + "\n"
-    client_socket.send(partial_get.encode())
-    recv_bytearray = bytearray()
-    while True:
-        recv_partial_get = client_socket.recv(1)[0]
-        recv_bytearray.append(recv_partial_get)
-        if recv_partial_get == 0x0a:
-            break
-        
-    recv_partial_data = client_socket.recv(9)
-    print('From Server: {0}'.format(recv_bytearray.decode()))
-    print('From Server: {0}'.format(recv_partial_data.decode()))
-except:
-    print("Unexpected Error")
-'''
+    #print(size)
+    rep_recv=client_socket.recv(1024)
+    rep_recv= rep_recv.decode()
+    #print(rep_recv)
+    client_socket.close()
+#ok
 
 
-def rep(got_data):
-    try: #rep
-        client_socket = socket(AF_INET, SOCK_STREAM)
-        client_socket.connect((server_name, server_port))
-        fil = open(file_name, 'w')
-        fil.write(got_data.decode())
-        repkey_out = pbl2.repkey(key, file_name)
-        rep = "REP" + " " + file_name + " " + repkey_out + "\n"
-        client_socket.send(rep.encode())
-        recv_bytearray = bytearray()
-        while True:
-            recv_rep = client_socket.recv(1)[0]
-            recv_bytearray.append(recv_rep)
-            if recv_rep == 0x0a:
-                break
-        print('From Server: {0}'.format(recv_bytearray.decode()))
-    except:
-        print("Unexpected Error")
+if __name__ == '__main__':
+    best_time = 1000000
+    chuukei_list=['pg1','pg2','pg3','pg4','pg5','pg6','pg7']
+    for chuukei_name in chuukei_list:
+        if chuukei_name == server_name:
+            continue
+        client_socket = socket(AF_INET, SOCK_STREAM) #中継サーバに接続
+        client_socket.connect((chuukei_name, server_port))
+            
+
+
+
+
+
 
 if __name__ == '__main__':
     SIZE = size()
@@ -105,10 +108,8 @@ if __name__ == '__main__':
     #if byte_size[2] > 10000:
     for i in range(1,8):
         relay_server_name = "pg" + str(i) #接続するサーバの選択
-        if relay_server_name == server_name: 
-            continue # 中継サーバとファイルサーバが同じとき飛ばす
-        if relay_server_name == my_server_name:
-            continue # 中継サーバとクライアントサーバが同じとき飛ばす
+        if relay_server_name == server_name or relay_server_name == my_server_name: 
+            i=i+1 # 中継サーバとファイルサーバが同じとき飛ばす
         client_socket = socket(AF_INET, SOCK_STREAM) #中継サーバに接続
         client_socket.connect((relay_server_name, only_server_port)) 
         relay_1 = "DL" + " " + relay_server_name + " " + server_name + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(9) + "\n"
@@ -147,7 +148,6 @@ if __name__ == '__main__':
         if len(got_relay_2) == int(SIZE):
             break
     rep(got_relay_2)
-    print("REP要求完了")
-
+    print("REP要求完了") 
 
     client_socket.close() 
