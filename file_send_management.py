@@ -11,7 +11,7 @@ code101 = "NG 101 No such file"     #ファイルが存在しない
 code102 = "NG 102 Invalid range"    #指定されたファイルの範囲が不適
 code301 = "NG 301 INvalid command"  #コマンドが間違っている
 
-only_server_port = 50306 # chuukei
+only_server_port = 53922 # chuukei
 server_port = 60623 # host contains files
 
 def rep(fserver_name, fname, key, got_data):
@@ -107,7 +107,7 @@ def receive(client_connect):
             if len(recv_data) <= 0:
                 break
         fserver_socket.close()
-        rep(fserver_name, fname, key, got_data)
+        #rep(fserver_name, fname, key, got_data)
         client_connect.send(got_data)
         print("すべてのファイルを転送完了")
     else:
@@ -117,7 +117,7 @@ def receive(client_connect):
 if __name__ == '__main__':
     server_socket = socket(AF_INET, SOCK_STREAM)  # TCPを使う待ち受け用のソケットを作る
     server_socket.bind(('', only_server_port))  # ポート番号をソケットに対応づける
-    server_socket.listen(10)  # クライアントからの接続を待つ
+    server_socket.listen(5)  # クライアントからの接続を待つ
     print('The chuukei server is ready to receive')
     while True:
         connection_socket, addr = server_socket.accept()
