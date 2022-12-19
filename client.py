@@ -75,7 +75,7 @@ except:
 try: #get(partial)
     client_socket = socket(AF_INET, SOCK_STREAM)
     client_socket.connect((server_name, server_port))
-    partial_get = "GET" + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(9) + "\n"
+    partial_get = "GET" + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(10000) + "\n"
     client_socket.send(partial_get.encode())
     recv_bytearray = bytearray()
     while True:
