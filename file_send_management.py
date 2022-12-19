@@ -15,7 +15,7 @@ code301 = "NG 301 INvalid command"  #コマンドが間違っている
 only_server_port = 53922 # chuukei
 server_port = 60623 # host contains files
 
- def ping_comd(fileserver):
+def ping_comd(fileserver):
     r=subprocess.run(["ping", "-c 10", fileserver], stdout=subprocess.PIPE)
     std_out=r.stdout.decode()
     # print(std_out)
