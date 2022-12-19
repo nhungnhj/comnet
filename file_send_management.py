@@ -5,7 +5,6 @@ from socket import *
 import threading
 import pbl2
 import time
-import subprocess
 # key = pbl2.genkey(token)
 codeOK = "OK" 
 code101 = "NG 101 No such file"     #ファイルが存在しない
@@ -73,6 +72,7 @@ def receive(client_connect):
     key = arr[4]
     move = arr[5]
 
+
     if com == 'DL' and move == 'PARTIAL': #クライアントからDLを受け取ったら(PARTIAL)
         fserver_name = fserver
         fserver_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
@@ -132,6 +132,10 @@ def receive(client_connect):
         #rep(fserver_name, fname, key, got_data)
         client_connect.send(got_data)
         print("すべてのファイルを転送完了")
+
+    elif com == 'PING':
+        delay, loss=ping_comd(fserver_name)
+        print('packet loss:', loss, '%')
     else:
         print(code301) 
             
