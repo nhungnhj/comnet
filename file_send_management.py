@@ -5,6 +5,7 @@ from socket import *
 import threading
 import pbl2
 import time
+import subprocess
 # key = pbl2.genkey(token)
 codeOK = "OK" 
 code101 = "NG 101 No such file"     #ファイルが存在しない
@@ -13,6 +14,27 @@ code301 = "NG 301 INvalid command"  #コマンドが間違っている
 
 only_server_port = 53922 # chuukei
 server_port = 60623 # host contains files
+
+ def ping_comd(fileserver):
+    r=subprocess.run(["ping", "-c 10", fileserver], stdout=subprocess.PIPE)
+    std_out=r.stdout.decode()
+    # print(std_out)
+    std_out_lst = std_out.split()
+    
+    if not len(std_out_lst) == 10:
+        for word in std_out_lst:
+            if word == 'packet':
+                word_index = std_out_lst.index(word)
+                loss=std_out_lst[word_index-1] # string xx%
+                loss=float(loss.split("%")[0]) #float xx [%]
+            elif word == 'min/avg/max/mdev':
+                word_index = std_out_lst.index(word)
+                delay=float(std_out_lst[word_index+2].split("/")[1])/2 #delay float [ms]
+                delay = round(delay,0) #delay -> .0f
+    else:
+        loss = 100
+        delay = 0
+    return delay, loss
 
 def rep(fserver_name, fname, key, got_data):
     #try: #rep
