@@ -5,8 +5,7 @@ from socket import *
 import threading
 import pbl2
 import time
-#from timeout_decorator import timeout, TimeoutError
-# key = pbl2.genkey(token)
+
 codeOK = "OK" 
 code101 = "NG 101 No such file"     #ファイルが存在しない
 code102 = "NG 102 Invalid range"    #指定されたファイルの範囲が不適
@@ -41,8 +40,6 @@ def interact_with_client(client_connect):
 
 def receive(client_connect):
     sentence = client_connect.recv(1024).decode()
-    
-
     print("DLコマンド受信")
     arr = sentence.split()  #単語に分ける
     print(arr)
@@ -113,8 +110,7 @@ def receive(client_connect):
         client_connect.send(got_data)
         print("すべてのファイルを転送完了")
     else:
-        print(code301) 
-            
+        print(code301)             
 
 if __name__ == '__main__':
     server_socket = socket(AF_INET, SOCK_STREAM)  # TCPを使う待ち受け用のソケットを作る
@@ -124,4 +120,4 @@ if __name__ == '__main__':
     while True:
         connection_socket, addr = server_socket.accept()
         client_handler = threading.Thread(target=interact_with_client, args=(connection_socket,))
-        client_handler.start() 
+        client_handler.start()
