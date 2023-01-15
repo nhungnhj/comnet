@@ -12,7 +12,7 @@ token = sys.argv[4]
 my_server_name = sys.argv[5]
 key = pbl2.genkey(token)
 only_server_port = 53930
-
+ttl=1.0
 def size():
     i = 0 
     byte = 0
@@ -63,6 +63,7 @@ if __name__ == '__main__':
     # データを受け取る 
     best_time = 1000000
     #if byte_size[2] > 10000:
+    start=time.time()
     for i in range(1,8):
         relay_server_name = "pg" + str(i) #接続するサーバの選択
         if relay_server_name == server_name: 
@@ -74,7 +75,7 @@ if __name__ == '__main__':
         relay_1 = "DL" + " " + relay_server_name + " " + server_name + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(9) + "\n"
         #DL_中継サーバ名_ファイルサーバ名_ファイル名_key_partial_0_10\n
         try: # 5秒以内に実行できない場合except文に移る
-            client_socket.settimeout(3.0)
+            client_socket.settimeout(ttl)
             client_socket.send(relay_1.encode()) #中継サーバに送信
             got_relay_1 = bytearray()
             print("応答の受け取り開始")
@@ -89,7 +90,7 @@ if __name__ == '__main__':
             spl = got_relay_1.decode().split()
             relay_time = float(spl[0]) #受け取った時間を実数に変換
         except:
-            relay_time = 3.0
+            relay_time = ttl
             print('From Server: {} {}'.format(relay_server_name, relay_time))
             client_socket.close()
         finally:
@@ -129,7 +130,7 @@ if __name__ == '__main__':
         relay_1 = "DLrelay" + " " + relay_server_name + " " + best_server_name + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(9) + "\n"
         #DLrelay_中継サーバ名_ファイルサーバ名(中継サーバ)_ファイル名_key_partial_0_9\n
         try:
-            client_socket.settimeout(3.0)
+            client_socket.settimeout(ttl)
             client_socket.send(relay_1.encode())
             got_relay_1 = bytearray()
             print("応答の受け取り開始")
@@ -144,7 +145,7 @@ if __name__ == '__main__':
             spl = got_relay_1.decode().split()
             relay_time = float(spl[0]) #受け取った時間を実数に変換
         except:
-            relay_time = 3.0
+            relay_time = ttl
             print('From Server: {} {}'.format(relay_server_name, relay_time))
             client_socket.close()
         finally:
@@ -170,6 +171,8 @@ if __name__ == '__main__':
         if len(got_relay_n) == int(SIZE):
             break
     rep(got_relay_n)
+    stop=time.time()
+    print('all time: {}'.format(stop-start))
     print("REP要求完了") 
     
     client_socket.close() 
