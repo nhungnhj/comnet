@@ -115,7 +115,7 @@ if __name__ == '__main__':
     explored_server_1 = best_server #ファイルを受け取ったサーバを記憶
     print(got_relay_2.decode())
     client_socket.close()
-
+    best_time = 1000000
     for i in range(1,8):
         relay_server_name = "pg" + str(i)
         if relay_server_name == server_name:
