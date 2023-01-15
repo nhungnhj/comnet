@@ -66,8 +66,8 @@ if __name__ == '__main__':
     start=time.time()
     for i in range(1,8):
         relay_server_name = "pg" + str(i) #接続するサーバの選択
-        if relay_server_name == server_name: 
-            continue # 中継サーバとファイルサーバが同じとき飛ばす
+        #if relay_server_name == server_name: 
+            #continue # 中継サーバとファイルサーバが同じとき飛ばす
         if relay_server_name == my_server_name:
             continue # 中継サーバとクライアントサーバが同じとき飛ばす
         client_socket = socket(AF_INET, SOCK_STREAM) #中継サーバに接続
@@ -123,8 +123,8 @@ if __name__ == '__main__':
             continue
         if relay_server_name == my_server_name:
             continue
-        if i == explored_server_1:
-            continue
+        #if i == explored_server_1:
+            #continue
         client_socket = socket(AF_INET, SOCK_STREAM)
         client_socket.connect((relay_server_name, only_server_port))
         relay_1 = "DLrelay" + " " + relay_server_name + " " + best_server_name + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(9) + "\n"
