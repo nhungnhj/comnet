@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-# chuukei 
+# chuukei
 import random
 from socket import *
 import threading
@@ -11,22 +11,32 @@ code101 = "NG 101 No such file"     #ファイルが存在しない
 code102 = "NG 102 Invalid range"    #指定されたファイルの範囲が不適
 code301 = "NG 301 INvalid command"  #コマンドが間違っている
 
-only_server_port = 53934 # chuukei
+only_server_port = 53929 # chuukei
 server_port = 60623 # host contains files
 
+def rep(fserver_name, fname, key, got_data):
+    #try: #rep
+    fserver_socket = socket(AF_INET, SOCK_STREAM)
+    fserver_socket.connect((fserver_name, server_port))
+    fil = open(fname, 'wb')
+    fil.write(got_data.decode())
+    repkey_out = pbl2.repkey(key, fname)
+    rep = "REP" + " " + fname + " " + repkey_out + "\n"
+    fserver_socket.send(rep.encode())
+    recv_bytearray = bytearray()
+    while True:
+        recv_rep = fserver_socket.recv(1)[0]
+        recv_bytearray.append(recv_rep)
+        if recv_rep == 0x0a:
+            break
+    print('From Server: {0}'.format(recv_bytearray.decode()))
+    #except:
+    #    print("Unexpected Error")
+
 def interact_with_client(client_connect): 
-    partial_data_1 = bytearray()
-    partial_data_2 = bytearray()
-    partial_data_3 = bytearray()
-    partial_data_4 = bytearray()
-    partial_data_5 = bytearray()
-    all_data_1 = bytearray()
-    all_data_2 = bytearray()
-    all_data_3 = bytearray()
-    all_data_4 = bytearray()
-    all_data_5 = bytearray()
     while True:
         receive(client_connect) #クライアントからの命令を実行
+    client_connect.close()
 
 def receive(client_connect):
     sentence = client_connect.recv(1024).decode()
@@ -64,14 +74,13 @@ def receive(client_connect):
         recv_data = fserver_socket.recv(int(arr[7])) #指定したバイト数受け取る
         
         stop_time = time.time() #計測終了
-        global partial_data_1
-        partial_data_1 = recv_data
         fserver_socket.close() #ファイルサーバから切断
         recv_time = stop_time - start_time #受け取るのにかかった時間を計算
         send_relay = str(recv_time) + " " + "sec" + "\n"
         client_connect.send(send_relay.encode()) #時間をクライアントに送信
         print(recv_time)
         print("計測時間送信完了")
+
     elif com == 'DL' and move == 'ALL':  #クライアントからDLを受け取ったら(ALL)
         fserver_name = fserver
         fserver_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
@@ -96,251 +105,13 @@ def receive(client_connect):
             got_data += recv_data
             if len(recv_data) <= 0:
                 break
-        global all_data_1
-        all_data_1 = got_data
         fserver_socket.close()
-        print("すべてのファイルを受信完了")
-        messege = "すべてのファイルを受信完了\n"
-        client_connect.send(messege.encode())
-    elif com == 'DLrelay2' and move == 'PARTIAL':
-        relay_server_name = fserver
-        relay_server_socket = socket(AF_INET, SOCK_STREAM)
-        relay_server_socket.connect((relay_server_name, only_server_port))
-
-        send_get_partial = "GETrelay" + " " + "dummy" + " " + "dummy" + " " + fname + " " + key + " " + move + " " + str(0) + " " + str(9) + "\n"
-        #GETrelay_dummy_dummy_ファイル名_key_partial_0_9\n
-        relay_server_socket.send(send_get_partial.encode())
-        print("GET要求送信")
-        recv_data_partial = bytearray()
-        start_time = time.time()
-        recv_data_partial = relay_server_socket.recv(int(arr[7]))
-        global partial_data_2
-        partial_data_2 = recv_data_partial
-        print(recv_data_partial)
-        stop_time = time.time()
-        relay_server_socket.close()
-        recv_time = stop_time - start_time
-        send_relay = str(recv_time) + " " + "sec" + "\n"
-        client_connect.send(send_relay.encode())
-        print(recv_time)
-        print("計測時間送信完了")
-    elif com == 'DLrelay3' and move == 'PARTIAL':
-        relay_server_name = fserver
-        relay_server_socket = socket(AF_INET, SOCK_STREAM)
-        relay_server_socket.connect((relay_server_name, only_server_port))
-
-        send_get_partial = "GETrelay" + " " + "dummy" + " " + "dummy" + " " + fname + " " + key + " " + move + " " + str(0) + " " + str(9) + "\n"
-        #GETrelay_dummy_dummy_ファイル名_key_partial_0_9\n
-        relay_server_socket.send(send_get_partial.encode())
-        print("GET要求送信")
-        recv_data_partial = bytearray()
-        start_time = time.time()
-        recv_data_partial = relay_server_socket.recv(int(arr[7]))
-        global partial_data_3
-        partial_data_3 = recv_data_partial
-        print(recv_data_partial)
-        stop_time = time.time()
-        relay_server_socket.close()
-        recv_time = stop_time - start_time
-        send_relay = str(recv_time) + " " + "sec" + "\n"
-        client_connect.send(send_relay.encode())
-        print(recv_time)
-        print("計測時間送信完了")
-    elif com == 'DLrelay4' and move == 'PARTIAL':
-        relay_server_name = fserver
-        relay_server_socket = socket(AF_INET, SOCK_STREAM)
-        relay_server_socket.connect((relay_server_name, only_server_port))
-
-        send_get_partial = "GETrelay" + " " + "dummy" + " " + "dummy" + " " + fname + " " + key + " " + move + " " + str(0) + " " + str(9) + "\n"
-        #GETrelay_dummy_dummy_ファイル名_key_partial_0_9\n
-        relay_server_socket.send(send_get_partial.encode())
-        print("GET要求送信")
-        recv_data_partial = bytearray()
-        start_time = time.time()
-        recv_data_partial = relay_server_socket.recv(int(arr[7]))
-        global partial_data_4
-        partial_data_4 = recv_data_partial
-        print(recv_data_partial)
-        stop_time = time.time()
-        relay_server_socket.close()
-        recv_time = stop_time - start_time
-        send_relay = str(recv_time) + " " + "sec" + "\n"
-        client_connect.send(send_relay.encode())
-        print(recv_time)
-        print("計測時間送信完了")
-    elif com == 'DLrelay5' and move == 'PARTIAL':
-        relay_server_name = fserver
-        relay_server_socket = socket(AF_INET, SOCK_STREAM)
-        relay_server_socket.connect((relay_server_name, only_server_port))
-
-        send_get_partial = "GETrelay" + " " + "dummy" + " " + "dummy" + " " + fname + " " + key + " " + move + " " + str(0) + " " + str(9) + "\n"
-        #GETrelay_dummy_dummy_ファイル名_key_partial_0_9\n
-        relay_server_socket.send(send_get_partial.encode())
-        print("GET要求送信")
-        recv_data_partial = bytearray()
-        start_time = time.time()
-        recv_data_partial = relay_server_socket.recv(int(arr[7]))
-        global partial_data_5
-        partial_data_5 = recv_data_partial
-        print(recv_data_partial)
-        stop_time = time.time()
-        relay_server_socket.close()
-        recv_time = stop_time - start_time
-        send_relay = str(recv_time) + " " + "sec" + "\n"
-        client_connect.send(send_relay.encode())
-        print(recv_time)
-        print("計測時間送信完了")
-    elif com == 'DLrelay2' and move == 'ALL':
-        relay_server_name = fserver
-        relay_server_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
-        relay_server_socket.connect((relay_server_name, only_server_port))
-
-        send_get_all = "GETrelay2" + " " + "dummy" + " " + "dummy" + " " + fname + " " + key + " " + move + "\n"
-        #GETrelay_dummy_dummy_ファイル名_key_ALL\n
-        relay_server_socket.send(send_get_all.encode())
-        print("GET要求送信")
-
-        recv_data = bytearray()
-        got_data = bytearray()
-        while True:
-            recv_data = relay_server_socket.recv(1024)
-            got_data += recv_data
-            if len(recv_data) <= 0:
-                break
-        global all_data_2
-        all_data_2 = got_data
-        print("全てのデータを受信2")
-        relay_server_socket.close()
-        print("全てのファイルを受信完了")
-        messege = "すべてのファイルを受信完了\n"
-        client_connect.send(messege.encode())
-    elif com == 'DLrelay3' and move == 'ALL':
-        relay_server_name = fserver
-        relay_server_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
-        relay_server_socket.connect((relay_server_name, only_server_port))
-
-        send_get_all = "GETrelay3" + " " + "dummy" + " " + "dummy" + " " + fname + " " + key + " " + move + "\n"
-        #GETrelay_dummy_dummy_ファイル名_key_ALL\n
-        relay_server_socket.send(send_get_all.encode())
-        print("GET要求送信")
-
-        recv_data = bytearray()
-        got_data = bytearray()
-        while True:
-            recv_data = relay_server_socket.recv(1024)
-            got_data += recv_data
-            if len(recv_data) <= 0:
-                break
-        global all_data_3
-        all_data_3 = got_data
-        print("全てのデータを受信3")
-        relay_server_socket.close()
-        print("全てのファイルを受信完了")
-        messege = "すべてのファイルを受信完了\n"
-        client_connect.send(messege.encode())
-    elif com == 'DLrelay4' and move == 'ALL':
-        relay_server_name = fserver
-        relay_server_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
-        relay_server_socket.connect((relay_server_name, only_server_port))
-
-        send_get_all = "GETrelay4" + " " + "dummy" + " " + "dummy" + " " + fname + " " + key + " " + move + "\n"
-        #GETrelay_dummy_dummy_ファイル名_key_ALL\n
-        relay_server_socket.send(send_get_all.encode())
-        print("GET要求送信")
-
-        recv_data = bytearray()
-        got_data = bytearray()
-        while True:
-            recv_data = relay_server_socket.recv(1024)
-            got_data += recv_data
-            if len(recv_data) <= 0:
-                break
-        global all_data_4
-        all_data_4 = got_data
-        print("全てのデータを受信4")
-        relay_server_socket.close()
-        print("全てのファイルを受信完了")
-        messege = "すべてのファイルを受信完了\n"
-        client_connect.send(messege.encode())
-    elif com == 'DLrelay5' and move == 'ALL':
-        relay_server_name = fserver
-        relay_server_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
-        relay_server_socket.connect((relay_server_name, only_server_port))
-
-        send_get_all = "GETrelay5" + " " + "dummy" + " " + "dummy" + " " + fname + " " + key + " " + move + "\n"
-        #GETrelay_dummy_dummy_ファイル名_key_ALL\n
-        relay_server_socket.send(send_get_all.encode())
-        print("GET要求送信")
-
-        recv_data = bytearray()
-        got_data = bytearray()
-        while True:
-            recv_data = relay_server_socket.recv(1024)
-            got_data += recv_data
-            if len(recv_data) <= 0:
-                break
-        global all_data_5
-        all_data_5 = got_data
-        print("全てのデータを受信4")
-        relay_server_socket.close()
-        print("全てのファイルを受信完了")
-        messege = "すべてのファイルを受信完了\n"
-        client_connect.send(messege.encode())
+        #rep(fserver_name, fname, key, got_data)
+        client_connect.send(got_data)
+        print("すべてのファイルを転送完了")
     else:
-        print(code301)
-        
-    if com == 'GETrelay' and move == 'PARTIAL':
-        print("一部データを送信")
-        client_connect.send(partial_data_1)
-    elif com == 'GETrelayX' and move == 'PARTIAL':
-        print("GETrelayX PARTIAL")
-        if "partial_data_1" in globals():
-            print("partial_data_1を送信")
-            client_connect.send(partial_data_1)
-        elif "partial_data_2" in globals():
-            print("partial_data_2を送信")
-            client_connect.send(partial_data_2)
-        elif "partial_data_3" in globals():
-            print("partial_data_3を送信")
-            client_connect.send(partial_data_3)
-        elif "partial_data_4" in globals():
-            print("partial_data_4を送信")
-            client_connect.send(partial_data_4)
-        elif "partial_data_5" in globals():
-            print("partial_data_5を送信")
-            client_connect.send(partial_data_5)
-    elif com == 'GETrelay2' and move == 'ALL':
-        print("全てのデータを送信")
-        client_connect.send(all_data_1)
-    elif com == 'GETrelay3' and move == 'ALL':
-        print("全てのデータを送信")
-        client_connect.send(all_data_2)
-    elif com == 'GETrelay4' and move == 'ALL':
-        print("全てのデータを送信")
-        client_connect.send(all_data_3)
-    elif com == 'GETrelay5' and move == 'ALL':
-        print("全てのデータを送信")
-        client_connect.send(all_data_4)
-    elif com == 'GETrelayX' and move == 'ALL':
-        print("GETrelayX ALL")
-        if "all_data_1" in globals():
-            print("all_data_1を送信")
-            client_connect.send(all_data_1)
-        elif "all_data_2" in globals():
-            print("all_data_2を送信")
-            client_connect.send(all_data_2)
-        elif "all_data_3" in globals():
-            print("all_data_3を送信")
-            client_connect.send(all_data_3)
-        elif "all_data_4" in globals():
-            print("all_data_4を送信")
-            client_connect.send(all_data_4)
-        elif "all_data_5" in globals():
-            print("all_data_5を送信")
-            client_connect.send(all_data_5)
+        print(code301)             
 
-    client_connect.close()
-   
 if __name__ == '__main__':
     server_socket = socket(AF_INET, SOCK_STREAM)  # TCPを使う待ち受け用のソケットを作る
     server_socket.bind(('', only_server_port))  # ポート番号をソケットに対応づける
@@ -349,5 +120,4 @@ if __name__ == '__main__':
     while True:
         connection_socket, addr = server_socket.accept()
         client_handler = threading.Thread(target=interact_with_client, args=(connection_socket,))
-        client_handler.start()
-        ###
+        client_handler.start() 
