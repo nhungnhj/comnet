@@ -176,3 +176,4 @@ if __name__ == '__main__':
     print("REP要求完了") 
     
     client_socket.close() 
+###
