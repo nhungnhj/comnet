@@ -369,10 +369,32 @@ if __name__ == '__main__':
             client_socket.settimeout(None)
             spl = got_relay.decode().split()
             relay_time = float(spl[0]) #受け取った時間を実数に変換
+            if relay_time < best_time: #より速い経路が見つかったら更新
+                best_time = relay_time 
+                best_server = i
+            client_socket.close()
+            print('From Server: {0}'.format(best_time)) 
+            print('From Server: {0}'.format(best_server))
+            best_server_name = "pg" + str(best_server)
+            client_socket = socket(AF_INET, SOCK_STREAM) #中継サーバに接続
+            client_socket.connect((best_server_name, only_server_port)) 
+            relay = "DLrelay5" + " " + "pg" + str(best_server) + " " + "pg" + str(explored_server_4) + " " + file_name + " " + key + " " + "ALL" + "\n"
+            client_socket.send(relay.encode())
+            print("DLコマンド送信(ALL)")
+            got_relay = bytearray()
+            while True:
+                recv_relay = client_socket.recv(1)[0]
+                got_relay.append(recv_relay) 
+                if recv_relay == 0x0a:
+                    break
+            print(got_relay.decode())
+            client_socket.close()
         except:
             relay_time = 2.0
             print('From Server: {} {}'.format(relay_server_name, relay_time))
+            nonexplored_server = i
             client_socket.close()
+'''
         finally:
             if relay_time < best_time: #より速い経路が見つかったら更新
                 best_time = relay_time 
@@ -395,7 +417,7 @@ if __name__ == '__main__':
     explored_server_5 = best_server #ファイルを受け取ったサーバを記憶
     print(got_relay.decode())
     client_socket.close()
-
+'''
     # 第6段階 ------------------------------------------------
     best_time = 100
     for i in range(1,8):
@@ -403,6 +425,8 @@ if __name__ == '__main__':
         if relay_server_name == server_name:
             continue
         if relay_server_name == my_server_name:
+            continue
+        if i == nonexplored_server:
             continue
         client_socket = socket(AF_INET, SOCK_STREAM)
         client_socket.connect((relay_server_name, only_server_port))
