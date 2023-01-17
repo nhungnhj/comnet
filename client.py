@@ -11,8 +11,8 @@ file_name = sys.argv[3]
 token = sys.argv[4]
 my_server_name = sys.argv[5]
 key = pbl2.genkey(token)
-only_server_port = 53990
-ttl=5.0
+only_server_port = 53980
+ttl=2.0
 def size():
     i = 0
     byte = 0
@@ -121,5 +121,5 @@ if __name__ == '__main__':
     rep(got_relay_2)
     stop_all=time.time()
     print("REP要求完了") 
-    print('all time: '.format(stop_all-start_all))
+    print('all time: {0}'.format(stop_all-start_all))
     client_socket.close() 
