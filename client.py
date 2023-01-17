@@ -86,7 +86,7 @@ if __name__ == '__main__':
                 got_relay_1.append(recv_relay_1)
                 if recv_relay_1 == 0x0a:
                     break
-            recv_relay = client_socket.recv(9)
+            recv_relay = client_socket.recv(10)
             stop = time.time()
             print("応答の受け取り")
             print('From Server: {} {}'.format(relay_server_name, got_relay_1.decode()))
