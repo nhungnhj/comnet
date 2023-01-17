@@ -67,8 +67,8 @@ if __name__ == '__main__':
     start_all=time.time()
     for i in range(1,8):
         relay_server_name = "pg" + str(i) #接続するサーバの選択
-        if relay_server_name == server_name: 
-            continue # 中継サーバとファイルサーバが同じとき飛ばす
+        #if relay_server_name == server_name: 
+         #   continue # 中継サーバとファイルサーバが同じとき飛ばす
         if relay_server_name == my_server_name:
             continue # 中継サーバとクライアントサーバが同じとき飛ばす
         client_socket = socket(AF_INET, SOCK_STREAM) #中継サーバに接続
