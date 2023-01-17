@@ -11,7 +11,7 @@ file_name = sys.argv[3]
 token = sys.argv[4]
 my_server_name = sys.argv[5]
 key = pbl2.genkey(token)
-only_server_port = 53995
+only_server_port = 53992
 ttl=5.0
 def size():
     i = 0
