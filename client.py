@@ -64,7 +64,7 @@ if __name__ == '__main__':
     # データを受け取る 
     best_time = 1000000
     #if byte_size[2] > 10000:
-    #start_all=time.time()
+    start_all=time.time()
     for i in range(1,8):
         relay_server_name = "pg" + str(i) #接続するサーバの選択
         #if relay_server_name == server_name: 
@@ -89,7 +89,8 @@ if __name__ == '__main__':
             recv_relay = client_socket.recv(10)
             stop = time.time()
             print("応答の受け取り")
-            print('From Server: {} {}'.format(relay_server_name, got_relay_1.decode()))
+            #print('From Server: {} {}'.format(relay_server_name, got_relay_1.decode()))
+            print('From Server: {} {}'.format(relay_server_name, stop-start))
             client_socket.settimeout(None)
             spl = got_relay_1.decode().split()
             relay_time = stop-start
@@ -118,7 +119,7 @@ if __name__ == '__main__':
         if len(got_relay_2) == int(SIZE):
             break
     rep(got_relay_2)
-    #stop_all=time.time()
+    stop_all=time.time()
     print("REP要求完了") 
-    #print('all time: '.format(stop_all-start_all))
+    print('all time: '.format(stop_all-start_all))
     client_socket.close() 
