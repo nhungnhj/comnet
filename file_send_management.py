@@ -1,57 +1,31 @@
-# client.py
-
+# -*- coding: utf-8 -*-
+# chuukei
+import random
 from socket import *
-import time
-import sys
+import threading
 import pbl2
+import time
 
-server_name = sys.argv[1]
-server_port = int(sys.argv[2])
-file_name = sys.argv[3]
-token = sys.argv[4]
-my_server_name = sys.argv[5]
-key = pbl2.genkey(token)
-only_server_port = 53980
-ttl=2.0
-def size():
-    i = 0
-    byte = 0
-    try: #try
-        client_socket = socket(AF_INET, SOCK_STREAM)
-        client_socket.connect((server_name, server_port))
-        size = "SIZE" + " " + file_name + "\n"
-        client_socket.send(size.encode())
-        recv_bytearray = bytearray()
-        while True:
-            recv_size = client_socket.recv(1)[0]
-            recv_bytearray.append(recv_size)
-            i += 1
-            if recv_size == 0x0a:
-                break
-        print('From Server: {0}'.format(recv_bytearray.decode()))
-        byte_size = recv_bytearray.decode().split()
-        return byte_size[2]
-    except: 
-        print("Unexpected Error")
+codeOK = "OK" 
+code101 = "NG 101 No such file"     #ファイルが存在しない
+code102 = "NG 102 Invalid range"    #指定されたファイルの範囲が不適
+code301 = "NG 301 INvalid command"  #コマンドが間違っている
 
+only_server_port = 53980 # chuukei
+server_port = 60623 # host contains files
 
-
-def rep(got_data):
+def rep(fserver_name, fname, key, got_data):
     try: #rep
-        client_socket = socket(AF_INET, SOCK_STREAM)
-        client_socket.connect((server_name, server_port))
-        if type(got_data) == str:
-            fil = open(file_name, 'w')
-            fil.write(got_data.decode())
-        else:
-            fil = open(file_name, 'wb')
-            fil.write(got_data)
-        repkey_out = pbl2.repkey(key, file_name)
-        rep = "REP" + " " + file_name + " " + repkey_out + "\n"
-        client_socket.send(rep.encode())
+        fserver_socket = socket(AF_INET, SOCK_STREAM)
+        fserver_socket.connect((fserver_name, server_port))
+        fil = open(fname, 'w')
+        fil.write(got_data.decode())
+        repkey_out = pbl2.repkey(key, fname)
+        rep = "REP" + " " + fname + " " + repkey_out + "\n"
+        fserver_socket.send(rep.encode())
         recv_bytearray = bytearray()
         while True:
-            recv_rep = client_socket.recv(1)[0]
+            recv_rep = fserver_socket.recv(1)[0]
             recv_bytearray.append(recv_rep)
             if recv_rep == 0x0a:
                 break
@@ -59,67 +33,92 @@ def rep(got_data):
     except:
         print("Unexpected Error")
 
-if __name__ == '__main__':
-    SIZE = size()
-    # データを受け取る 
-    best_time = 1000000
-    #if byte_size[2] > 10000:
-    start_all=time.time()
-    for i in range(1,8):
-        relay_server_name = "pg" + str(i) #接続するサーバの選択
-        #if relay_server_name == server_name: 
-         #   continue # 中継サーバとファイルサーバが同じとき飛ばす
-        if relay_server_name == my_server_name:
-            continue # 中継サーバとクライアントサーバが同じとき飛ばす
-        client_socket = socket(AF_INET, SOCK_STREAM) #中継サーバに接続
-        client_socket.connect((relay_server_name, only_server_port)) 
-        relay_1 = "DL" + " " + relay_server_name + " " + server_name + " " + file_name + " " + key + " " + "PARTIAL" + " " + str(0) + " " + str(9) + "\n"
-        #DL_中継サーバ名_ファイルサーバ名_ファイル名_key_partial_0_10\n
-        try:
-            client_socket.settimeout(ttl)
-            start = time.time()
-            client_socket.send(relay_1.encode()) #中継サーバに送信
-            got_relay_1 = bytearray()
-            print("応答の受け取り開始")
-            while True:
-                recv_relay_1 = client_socket.recv(1)[0] #応答を受け取る
-                got_relay_1.append(recv_relay_1)
-                if recv_relay_1 == 0x0a:
-                    break
-            recv_relay = client_socket.recv(10)
-            stop = time.time()
-            print("応答の受け取り")
-            #print('From Server: {} {}'.format(relay_server_name, got_relay_1.decode()))
-            print('From Server: {} {}'.format(relay_server_name, stop-start))
-            client_socket.settimeout(None)
-            spl = got_relay_1.decode().split()
-            relay_time = stop-start
-            #relay_time = float(spl[0]) #受け取った時間を実数に変換
-        except:
-            relay_time = ttl
-            print('From Server: {} {}'.format(relay_server_name, relay_time))
-        finally:
-            if relay_time < best_time: #より速い経路が見つかったら更新
-                best_time = relay_time 
-                best_server = i
-    print('From Server: {0}'.format(best_time))
-    print('From Server: {0}'.format(best_server))
-    best_server_name = "pg" + str(best_server)
-    client_socket.close()
-
-    client_socket = socket(AF_INET, SOCK_STREAM) #中継サーバに接続
-    client_socket.connect((best_server_name, only_server_port)) 
-    relay_2 = "DL" + " " + "pg" + str(best_server) + " " + server_name + " " + file_name + " " + key + " " + "ALL" + "\n"
-    client_socket.send(relay_2.encode())
-    print("DLコマンド送信(ALL)")
-    got_relay_2 = bytearray()
+def interact_with_client(client_connect): 
     while True:
-        recv_relay_2 = client_socket.recv(1024) #応答を受け取る
-        got_relay_2 += recv_relay_2
-        if len(got_relay_2) == int(SIZE):
-            break
-    rep(got_relay_2)
-    stop_all=time.time()
-    print("REP要求完了") 
-    print('all time: {0}'.format(stop_all-start_all))
-    client_socket.close() 
+        receive(client_connect) #クライアントからの命令を実行
+    client_connect.close()
+
+def receive(client_connect):
+    sentence = client_connect.recv(1024).decode()
+    print("DLコマンド受信")
+    arr = sentence.split()  #単語に分ける
+    print(arr)
+
+    com = arr[0]
+    fserver = arr[2]
+    fname = arr[3]
+    key = arr[4]
+    move = arr[5]
+
+    if com == 'DL' and move == 'PARTIAL': #クライアントからDLを受け取ったら(PARTIAL)
+        fserver_name = fserver
+        fserver_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
+        fserver_socket.connect((fserver_name, server_port)) 
+
+        send_get_partial = "GET" + " " + fname + " " + key + " " + move + " " + arr[6] + " " + arr[7] + "\n"
+        #GET_ファイル名_key_PARTIAL_0_9\n
+        
+        fserver_socket.send(send_get_partial.encode()) #GET要求
+        print("GET要求送信")
+
+        start_time = time.time() #受信時間の計測開始
+        recv_bytearray = bytearray() #バイト列を格納する配列
+        recv_get = bytearray()
+        recv_data = bytearray()
+
+        while True:
+            recv_get = fserver_socket.recv(1)[0] #ファイルサーバから応答を受け取る
+            recv_bytearray.append(recv_get)
+            if recv_get == 0x0a:
+                break
+        recv_data = fserver_socket.recv(int(arr[7])) #指定したバイト数受け取る
+        
+        stop_time = time.time() #計測終了
+        fserver_socket.close() #ファイルサーバから切断
+        recv_time = stop_time - start_time #受け取るのにかかった時間を計算
+        send_relay = str(recv_time) + " " + "sec" + "\n"
+        client_connect.send(send_relay.encode()) #時間をクライアントに送信
+        client_connect.send(recv_bytearray)
+        print(recv_time)
+        print("計測時間送信完了")
+
+    elif com == 'DL' and move == 'ALL':  #クライアントからDLを受け取ったら(ALL)
+        fserver_name = fserver
+        fserver_socket = socket(AF_INET, SOCK_STREAM) #ファイルサーバに接続
+        fserver_socket.connect((fserver_name, server_port))
+
+        send_get_all = "GET" + " " + fname + " " + key + " " + move + "\n"
+        #GET_ファイル名_key_ALL\n
+
+        fserver_socket.send(send_get_all.encode())  #GET要求
+
+        recv_bytearray = bytearray() 
+        recv_get_all = bytearray()
+        recv_data = bytearray()
+        got_data = bytearray()
+        while True:
+            recv_get_all = fserver_socket.recv(1)[0] #ファイルサーバから応答を受け取る
+            recv_bytearray.append(recv_get_all)
+            if recv_get_all == 0x0a:
+                break
+        while True:
+            recv_data = fserver_socket.recv(1024)
+            got_data += recv_data
+            if len(recv_data) <= 0:
+                break
+        fserver_socket.close()
+        #rep(fserver_name, fname, key, got_data)
+        client_connect.send(got_data)
+        print("すべてのファイルを転送完了")
+    else:
+        print(code301)             
+
+if __name__ == '__main__':
+    server_socket = socket(AF_INET, SOCK_STREAM)  # TCPを使う待ち受け用のソケットを作る
+    server_socket.bind(('', only_server_port))  # ポート番号をソケットに対応づける
+    server_socket.listen(5)  # クライアントからの接続を待つ
+    print('The chuukei server is ready to receive')
+    while True:
+        connection_socket, addr = server_socket.accept()
+        client_handler = threading.Thread(target=interact_with_client, args=(connection_socket,))
+        client_handler.start() 
